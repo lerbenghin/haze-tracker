@@ -14,10 +14,24 @@ def get_psi():
     return readings, timestamp
 
 
-def format_message(readings, timestamp):
-    lines = [f"💨 *PSI Update for Ler* ({timestamp})"]
-    for region, value in readings.items():
+def get_pm25():
+    resp = requests.get(
+        "https://api-open.data.gov.sg/v2/real-time/api/pm25", timeout=10
+    )
+    resp.raise_for_status()
+    item = resp.json()["data"]["items"][0]
+    readings = item["readings"]["pm25_one_hourly"]
+    return readings
+
+
+def format_message(psi_readings, timestamp, pm25_readings):
+    lines = [f"💨 *PSI Update for Ler* ({timestamp})", "", "*24hr PSI:*"]
+    for region, value in psi_readings.items():
         lines.append(f"{region.capitalize()}: {value}")
+    lines.append("")
+    lines.append("*Hourly PM2.5 (µg/m³):*")
+    for region, value in pm25_readings.items():
+        lines.append(f"{region.capitalize()}:{value}")
     return "\n".join(lines)
 
 
@@ -30,7 +44,8 @@ def send_telegram(message):
 
 
 if __name__ == "__main__":
-    readings, timestamp = get_psi()
-    message = format_message(readings, timestamp)
+    psi_readings, timestamp = get_psi()
+    pm25_readings = get_pm25()
+    message = format_message(psi_readings, timestamp, pm25_readings)
     send_telegram(message)
     print("Sent: ", message)
