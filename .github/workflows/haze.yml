@@ -1,7 +1,7 @@
 name: Hourly Haze Tracker
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '58 * * * *'
   workflow_dispatch:
 
 jobs:
